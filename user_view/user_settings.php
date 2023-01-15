@@ -70,6 +70,7 @@ if(!isset($_SESSION['user_id'])){
         <dl class="row">
 
             <?php
+
                 $user_id = $_SESSION['user_id'];
                 $search_query="SELECT * FROM `user` WHERE user_id='$user_id'";
                 $result_search=mysqli_query($con,$search_query);
@@ -81,8 +82,9 @@ if(!isset($_SESSION['user_id'])){
                     $user_first_name=$row_data['first_name'];
                     $user_email=$row_data['email'];
                     $user_creation_date=$row_data['creation_date'];
-
-                    lineAttribute($user_email, 'Email');
+                    echo"
+                    <dt class='col-sm-3 my-3'>Email:</dt>
+                    <dd class='col-sm-9 my-3'>$user_email</dd>";
 
                     lineAttribute($user_first_name, 'First_name');
                     
@@ -103,31 +105,43 @@ if(!isset($_SESSION['user_id'])){
             if(isset($_POST['change_password'])){
                 $password=$_POST['password'];
                 $password_conf=$_POST['password_conf'];
-                //check if password is equal
-                if($password!=$password_conf){
+                //Validate password strength
+                $uppercase= preg_match('@[A-Z]@',$password);
+                $lowercase= preg_match('@[a-z]@',$password);
+                $num= preg_match('@[0-9]@',$password);
+                if(!$uppercase || !$lowercase || !$num || strlen($password) < 7) {
                     print '<div class="alert alert-warning" role="alert">
-                    Password confirmation is incorrect.
+                    Password must be at least 6 characters in length.</br>
+                    Password must include at least 1 upper case letter.</br>
+                    Password must include at least 1 number.
                     </div>';
                 }else{
-                    if ($password==""){
+                //check if password is equal
+                    if($password!=$password_conf){
                         print '<div class="alert alert-warning" role="alert">
-                        Password cannot be empty.
+                        Password confirmation is incorrect.
                         </div>';
                     }else{
-                        $hash_password=password_hash($password,PASSWORD_DEFAULT);
-                        $query="UPDATE`user` SET `password`='$hash_password' WHERE `user_id`='$user_id'";
-                        $result_insert=mysqli_query($con,$query);
-                        if($result_insert){
-                            print '<div class="alert alert-success" role="alert">Success. You have changed your password.</div>';
-                        }
-                        else{
-                            print '<div class="alert alert-danger" role="alert">Failure.</div>';
-                        }
+                        if ($password==""){
+                            print '<div class="alert alert-warning" role="alert">
+                            Password cannot be empty.
+                            </div>';
+                        }else{
+                            $hash_password=password_hash($password,PASSWORD_DEFAULT);
+                            $query="UPDATE`user` SET `password`='$hash_password' WHERE `user_id`='$user_id'";
+                            $result_insert=mysqli_query($con,$query);
+                            if($result_insert){
+                                print '<div class="alert alert-success" role="alert">Success. You have changed your password.</div>';
+                            }
+                            else{
+                                print '<div class="alert alert-danger" role="alert">Failure.</div>';
+                            }
+                        }    
                     }
                 }
             }
             echo"
-            <dt class='col-sm-3'>Account created</dt>
+            <dt class='col-sm-3'>Account created:</dt>
             <dd class='col-sm-9'>$user_creation_date</dd>";
 
 
@@ -197,5 +211,3 @@ echo"
 </div>
 </body>
 </html>
-
-
